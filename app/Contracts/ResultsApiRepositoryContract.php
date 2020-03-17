@@ -1,7 +1,9 @@
 <?php
 namespace App\Contracts;
 
-interface ResultsApiRepository
+use Illuminate\Support\Collection;
+
+interface ResultsApiRepositoryContract
 {
-    
+    public function get(int $page = 1): Collection;
 }

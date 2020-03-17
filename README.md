@@ -37,7 +37,7 @@ According to businness requirements we will use following:
 
 ### Performance
 
-- [TODO] Mongodb as a cacheing database from remote server.
+- [TODO] Mongodb as a caching database from remote server.
 - Docker usage for easy implementation in diffrent env's
 
 ### Scalability

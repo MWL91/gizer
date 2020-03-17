@@ -33,7 +33,7 @@ class JsonToDatabaseTest extends TestCase
 
     public function test_can_get_data_by_score()
     {
-        $results = Results::orderBy('score', 'desc')->pluck('score');
-        $this->assertTrue($results->first() >= $results->last());
+        $results = Results::orderBy('score', 'asc')->pluck('score');
+        $this->assertTrue($results->first() <= $results->last());
     }
 }
