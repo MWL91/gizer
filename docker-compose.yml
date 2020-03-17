@@ -1,0 +1,51 @@
+version: '3.5'
+services:
+  nginx:
+    networks:
+      - gizer
+    container_name: gizer_nginx
+    image: nginx:latest
+    ports:
+      - "1111:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/conf/:/etc/nginx/conf.d/
+      - ./docker/www_logs/nginx:/var/log/nginx
+    links:
+      - phpfpm
+  phpfpm:
+    networks:
+      - gizer
+    ports:
+      - "1110:6001"
+    container_name: gizer_app
+    build: docker/containers/php73-fpm
+    command: bash -c "/etc/init.d/cron start && php-fpm -F"
+    volumes:
+      - ./:/var/www/html:cached
+      - ./docker/php-custom.ini:/usr/local/etc/php/conf.d/php-custom.ini
+  mongo:
+    networks:
+      - gizer
+    container_name: gizer_mongo
+    image: mongo
+    ports:
+      - "27018:27017"
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+  mongo-express:
+    networks:
+      - gizer
+    container_name: gizer_mongoexpress
+    image: mongo-express
+    restart: always
+    ports:
+      - '1112:8081'
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+networks:
+  gizer:
+    driver: bridge
