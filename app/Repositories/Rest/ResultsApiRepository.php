@@ -21,10 +21,7 @@ class ResultsApiRepository implements ResultsApiRepositoryContract
     public function get(int $page = 1): Collection
     {
         $response = $this->client->request('GET', $this->apiUrl . $page);
-        if ($response->getStatusCode() != 200) {
-            throw new RuntimeException("Results api response with code " . $response->getStatusCode());
-        }
-
+        
         $data = json_decode($response->getBody()->getContents());
         if(!$data) {
             throw new RuntimeException("Datas recived from api is not correct");
