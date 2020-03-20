@@ -2,15 +2,13 @@
 
 namespace App\Services;
 
-use Exception;
+use RuntimeException;
 use App\Dto\ResultDto;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Collection;
 use App\Contracts\ResultsServiceContract;
 use GuzzleHttp\Exception\ClientException;
 use App\Contracts\ResultsRepositoryContract;
 use App\Contracts\ResultsApiRepositoryContract;
-use Illuminate\Support\Collection;
-use RuntimeException;
 
 class ResultsService implements ResultsServiceContract
 {
@@ -32,24 +30,22 @@ class ResultsService implements ResultsServiceContract
      * This method also create Data Transfer Objects, for security reasons (for example duplicated ids) 
      * 
      * @throws RuntimeException
+     * @throws ClientException
      * @return boolean
      */
     public function fetchDataFromResultsApi(): bool
     {
-        try {
-            $results = $this->resultsApiRepository->get();
+        $results = $this->resultsApiRepository->get();
             
-            foreach($results as $result)
-            {
-                $resultDto = new ResultDto($result);
+        foreach($results as $result)
+        {
+            $resultDto = new ResultDto($result);
+            $result = $this->resultsRepository->findById($resultDto->getId());
+            if($result) {
+                $this->resultsRepository->updateResult($result, $resultDto);
+            } else {
                 $this->resultsRepository->storeResult($resultDto);
             }
-        } catch (ClientException $e) {
-            Log::info('There was a problem with connection to API');
-            return false;
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return false;
         }
 
         return true;
@@ -61,20 +57,9 @@ class ResultsService implements ResultsServiceContract
      * @param string $order
      * @return Collection
      */
-    public function getResultsOrderedByDate(string $order = 'desc'): Collection
+    public function getResultsWithOrdering(string $orderBy, string $order = 'desc'): Collection
     {
-        return $this->resultsRepository->getResultsOrderedByDate($order);
-    }
-
-    /**
-     * Get results orderd by score
-     *
-     * @param string $order
-     * @return Collection
-     */
-    public function getResultsOrderedByScore(string $order = 'desc'): Collection
-    {
-        return $this->resultsRepository->getResultsOrderedByScore($order);
+        return $this->resultsRepository->getResultsWithOrdering($orderBy, $order);
     }
 
 }

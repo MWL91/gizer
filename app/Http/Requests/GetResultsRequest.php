@@ -13,7 +13,7 @@ class GetResultsRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,8 +24,8 @@ class GetResultsRequest extends FormRequest
     public function rules()
     {
         return [
-            'order' => 'in:asc,desc',
-            'order_by' => 'in:date,score'
+            'order' => ['in:asc,desc'],
+            'order_by' => ['in:finished_at,score', 'required_with:order']
         ];
     }
 }

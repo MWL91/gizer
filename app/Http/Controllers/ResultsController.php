@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
+use Exception;
 use App\Http\Requests\GetResultsRequest;
 use App\Contracts\ResultsServiceContract;
+use App\Http\Middleware\ResultsMiddleware;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\ResponseStrategies\ResponsesStrategy;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class ResultsController extends BaseController
+final class ResultsController extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ResponsesStrategy;
 
@@ -20,6 +21,7 @@ class ResultsController extends BaseController
     public function __construct(ResultsServiceContract $resultsService)
     {
         $this->resultsService = $resultsService;
+        $this->middleware([ResultsMiddleware::class]);
     }
 
     /**
@@ -46,14 +48,23 @@ class ResultsController extends BaseController
      */
     public function getResults(GetResultsRequest $request): Response
     {
-        // $request
-        $data = [];
-
         $response = $this->getDefaultResponseClass();
-        $response->setData($data);
-        $response->setStatus(200);
+
+        try {
+            $data = $this->resultsService->getResultsWithOrdering(
+                $request->get('order_by', 'score'),
+                $request->get('order', 'desc')
+            )->toArray();
+
+            $response->setData($data);
+            $response->setStatus(200);
+        } catch (Exception $e) {
+            $response->setData([
+                'message' => $e->getMessage()
+            ]);
+            $response->setStatus(400);
+        }
 
         return $response->getResponse();
     }
-
 }

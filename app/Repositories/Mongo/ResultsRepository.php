@@ -5,6 +5,7 @@ use App\Dto\ResultDto;
 use App\Models\Results;
 use Illuminate\Support\Collection;
 use App\Contracts\ResultsRepositoryContract;
+use Ramsey\Uuid\UuidInterface;
 
 class ResultsRepository implements ResultsRepositoryContract
 {
@@ -15,20 +16,27 @@ class ResultsRepository implements ResultsRepositoryContract
     {
         $this->model = $model;
     }
+
+    public function findById(UuidInterface $id): ?Results
+    {
+        return $this->model->where('id', (string) $id)->first();
+    }
     
     public function storeResult(ResultDto $resultDto): void
     {
         $this->model->create($resultDto->toArray());
     }
 
-    public function getResultsOrderedByDate(string $order): Collection
+    public function updateResult(Results $result, ResultDto $resultDto): Results
     {
-        return $this->model->orderBy('finished_at', $order)->get();
+        $result->update($resultDto->toArray());
+
+        return $result;
     }
 
-    public function getResultsOrderedByScore(string $order): Collection
+    public function getResultsWithOrdering(string $orderBy, string $order): Collection
     {
-        return $this->model->orderBy('score', $order)->get();
+        return $this->model->orderBy($orderBy, $order)->get();
     }
 
 }
